@@ -9,112 +9,119 @@ public class ILS{
   static int vertices[]; //array onde é associado cada vértice a um indicador
   static int nrRets;
   static int nrVerts;
+  static int nrInst;
   
   public static void main(String[] args){
     
     Scanner read = new Scanner(System.in);
 
-    nrRets = read.nextInt();
-    nrVerts = 2 * nrRets + 2;
-    rets = new boolean[nrRets + 1];
-    x = new boolean[nrVerts + 1];
-    vertices = new int[nrVerts + 1];
-    Point points[] = new Point[nrVerts + 1];
+    nrInst = read.nextInt();
+    
+    for(int l = 0; l < nrInst; l++){
+      System.out.println("Instância número " + (l+1) + ":");
 
-    for(int i = 0; i <= nrRets; i++){
-      rets[i]=false;
-    }
-    for(int i = 0; i <= nrVerts; i++){
-      x[i]=false;
-    }
-
-    int counter = 0;
-    for(int i = 1; i <= nrRets; i++){
-
-      int id = read.nextInt();
-      int nVert = read.nextInt();
-
-      for(int j = 1; j <= nVert; j++){
-
-        int x = read.nextInt();
-        int y = read.nextInt();
-        Point p = new Point(x,y);
-        int vertix = x * nrRets + y;
-        if(!pontos.containsKey(vertix)){
-          vertices[counter] = vertix;
-          points[counter] = p;
-          counter++;
-          pontos.put(vertix,new ArrayList<Integer>());
+      nrRets = read.nextInt();
+      nrVerts = 2 * nrRets + 2;
+      rets = new boolean[nrRets + 1];
+      x = new boolean[nrVerts + 1];
+      vertices = new int[nrVerts + 1];
+      Point points[] = new Point[nrVerts + 1];
+      
+      for(int i = 0; i <= nrRets; i++){
+        rets[i]=false;
+      }
+      for(int i = 0; i <= nrVerts; i++){
+        x[i]=false;
+      }
+      
+      int counter = 0;
+      for(int i = 1; i <= nrRets; i++){
+        
+        int id = read.nextInt();
+        int nVert = read.nextInt();
+        
+        for(int j = 1; j <= nVert; j++){
+          
+          int x = read.nextInt();
+          int y = read.nextInt();
+          Point p = new Point(x,y);
+          int vertix = x * nrRets + y;
+          if(!pontos.containsKey(vertix)){
+            vertices[counter] = vertix;
+            points[counter] = p;
+            counter++;
+            pontos.put(vertix,new ArrayList<Integer>());
+            pontos.get(vertix).add(id);
+          }
+          else
           pontos.get(vertix).add(id);
         }
-        else
-        pontos.get(vertix).add(id);
       }
-    }
-    
-    //Solução inicial, x[v] = 0, para todo o v (nenhum vértice tem guarda);
-    int custoInicial = costTotal(x, rets, nrRets, nrVerts);
-
-    System.out.println("Custo inicial: " + custoInicial);
-    System.out.println("Número de vértices: " + nrVerts);
-    
-    Random rand = new Random();
-    int iterationCounter = 50000;
-    int loopCounter = 100;
-    int loopFlag; // 0 quando um guarda foi adicionado, 1 quando retirado
-    int newCusto;
-    int melhorCusto = 99999;
-    boolean melhorx[] = new boolean[nrVerts+1];
-
-    //iterative local search
-    for(int j = 0; j < iterationCounter; j++){
       
-      randomInitial(nrVerts, x, rets, pontos, rand, vertices);
-
-      //hill climbing
-      for(int i = 0; i < loopCounter; i++){
-        int randomInt = rand.nextInt(nrVerts+1);
+      //Solução inicial, x[v] = 0, para todo o v (nenhum vértice tem guarda);
+      int custoInicial = costTotal(x, rets, nrRets, nrVerts);
+      
+      System.out.println("Custo inicial: " + custoInicial);
+      System.out.println("Número de vértices: " + nrVerts);
+      
+      Random rand = new Random();
+      int iterationCounter = 50000;
+      int loopCounter = 100;
+      int loopFlag; // 0 quando um guarda foi adicionado, 1 quando retirado
+      int newCusto;
+      int melhorCusto = 99999;
+      boolean melhorx[] = new boolean[nrVerts+1];
+      
+      //iterative local search
+      for(int j = 0; j < iterationCounter; j++){
         
-        if(x[randomInt] == true){
-          removeGuard(x, randomInt, pontos, vertices, rets);
-          loopFlag = 1;
-        }
-        else{
-          addGuard(x, randomInt, pontos, vertices, rets);
-          loopFlag = 0;
-        }
+        randomInitial(nrVerts, x, rets, pontos, rand, vertices);
         
-        newCusto = costTotal(x, rets, nrRets, nrVerts);
-        
-        if(newCusto < custoInicial){
-          custoInicial = newCusto;
-        }
-        else{
-          if(loopFlag == 0){
+        //hill climbing
+        for(int i = 0; i < loopCounter; i++){
+          int randomInt = rand.nextInt(nrVerts+1);
+          
+          if(x[randomInt] == true){
             removeGuard(x, randomInt, pontos, vertices, rets);
+            loopFlag = 1;
           }
-          else if(loopFlag == 1){
+          else{
             addGuard(x, randomInt, pontos, vertices, rets);
+            loopFlag = 0;
+          }
+          
+          newCusto = costTotal(x, rets, nrRets, nrVerts);
+          
+          if(newCusto < custoInicial){
+            custoInicial = newCusto;
+          }
+          else{
+            if(loopFlag == 0){
+              removeGuard(x, randomInt, pontos, vertices, rets);
+            }
+            else if(loopFlag == 1){
+              addGuard(x, randomInt, pontos, vertices, rets);
+            }
           }
         }
-      }
-      
-      if(custoInicial < melhorCusto){
-        melhorCusto = custoInicial;
-        melhorx = x;
-      }
-      else if(custoInicial == melhorCusto){
-        if(getGuardNumber(x, nrVerts) < getGuardNumber(melhorx, nrVerts)){
+        
+        if(custoInicial < melhorCusto){
           melhorCusto = custoInicial;
           melhorx = x;
         }
+        else if(custoInicial == melhorCusto){
+          if(getGuardNumber(x, nrVerts) < getGuardNumber(melhorx, nrVerts)){
+            melhorCusto = custoInicial;
+            melhorx = x;
+          }
+        }
       }
-    }
-
-    System.out.println("Melhor Custo: " + melhorCusto);
-    for(int i = 0; i < nrVerts; i++){
-      if(melhorx[i] == true){
-        System.out.println(points[i]);
+      
+      System.out.println("Melhor Custo: " + melhorCusto);
+      for(int i = 0; i < nrVerts; i++){
+        if(melhorx[i] == true){
+          System.out.println(points[i]);
+        }
       }
     }
   }
